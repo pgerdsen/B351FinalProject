@@ -16,9 +16,9 @@ from dataclasses import dataclass
 from typing import Optional, Tuple
 import random
 
-from game.board import Board, Player, PLAYER_1, PLAYER_2, N_POINTS, player_index
-from game.state import GameState
-from game import rules
+from ..game.board import Board, Player, PLAYER_1, PLAYER_2, N_POINTS, player_index
+from ..game.state import GameState
+from ..game import rules
 
 
 # ---------------------------------------------------------------------------

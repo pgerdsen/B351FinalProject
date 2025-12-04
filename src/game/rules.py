@@ -8,17 +8,10 @@ from .board import Board, Player, PLAYER_1, PLAYER_2, N_POINTS, player_index
 from .state import GameState
 from .dice import expand_dice
 
-from game.board import Player, PLAYER_1, PLAYER_2
 
 def other_player(player: Player) -> Player:
     """Return the opponent of `player`."""
-    if player == PLAYER_1:
-        return PLAYER_2
-    elif player == PLAYER_2:
-        return PLAYER_1
-    else:
-        raise ValueError(f"Unknown player: {player!r}")
-
+    return PLAYER_1 if player == PLAYER_2 else PLAYER_2
 
 
 @dataclass(frozen=True)

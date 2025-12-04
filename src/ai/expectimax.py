@@ -15,9 +15,9 @@ from dataclasses import dataclass
 from typing import Iterable, List, Optional, Sequence, Tuple
 import random
 
-from game.state import GameState
-from game.board import Player
-from game import rules
+from ..game.state import GameState
+from ..game.board import Player
+from ..game import rules
 
 from .heuristics import HeuristicWeights, DEFAULT_WEIGHTS, evaluate_state
 
