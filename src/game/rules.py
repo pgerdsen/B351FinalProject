@@ -184,6 +184,110 @@ def legal_actions(state: GameState, dice: Tuple[int, int]) -> List[Action]:
     unique_actions = list({a: None for a in actions}.keys())
     return unique_actions
 
+def _generate_action_candidates(
+    state: GameState,
+    remaining_dice: list[int],
+) -> list[tuple[tuple[Step, ...], tuple[int, ...]]]:
+    """
+    Recursively generate all possible action sequences for the given list of dice.
+
+    Each returned element is:
+        (steps_tuple, dice_used_tuple)
+
+    We do NOT enforce "max dice" or "higher die" rules here; we just
+    enumerate everything and let legal_actions filter afterward.
+    """
+    candidates: list[tuple[tuple[Step, ...], tuple[int, ...]]] = []
+
+    def _recurse(
+        current_state: GameState,
+        available: list[int],
+        steps_so_far: list[Step],
+        dice_used: list[int],
+    ) -> None:
+        any_move = False
+
+        # Try using each remaining die once
+        for i, die in enumerate(available):
+            moves = single_die_moves(current_state, die)
+            if not moves:
+                continue
+
+            any_move = True
+
+            for step in moves:
+                next_state = apply_step(current_state, step)
+                next_available = available[:i] + available[i + 1 :]
+                _recurse(
+                    next_state,
+                    next_available,
+                    steps_so_far + [step],
+                    dice_used + [die],
+                )
+
+        # If we couldn't move with any remaining die, record this sequence
+        if not any_move:
+            candidates.append((tuple(steps_so_far), tuple(dice_used)))
+
+    _recurse(state, remaining_dice, [], [])
+    return candidates
+
+
+def legal_actions(state: GameState, dice: Tuple[int, int]) -> List[Action]:
+    """
+    Generate legal actions for the current player, respecting:
+
+      - Doubles: up to 4 uses of the die (or fewer if blocked).
+      - Non-doubles: up to 2 uses of the dice.
+      - "Use as many dice as possible" rule.
+      - If only one die can be used in a non-double roll, prefer the higher die.
+
+    Each Action is a sequence of Steps applied in order.
+    """
+    d1, d2 = dice
+
+    # Expand dice into a multiset of pips.
+    # NOTE: We don't rely on expand_dice() here to avoid signature confusion.
+    if d1 == d2:
+        # Doubles: up to 4 uses
+        remaining_dice = [d1, d1, d1, d1]
+    else:
+        remaining_dice = [d1, d2]
+
+    # Enumerate all sequences we can play with these dice
+    raw_candidates = _generate_action_candidates(state, remaining_dice)
+
+    if not raw_candidates:
+        return []
+
+    # If *all* sequences are empty (no steps), there are no legal actions.
+    max_len = max(len(steps) for steps, _used in raw_candidates)
+    if max_len == 0:
+        return []
+
+    # Enforce "use as many dice as possible": keep only sequences with max_len steps.
+    best_sequences = [
+        (steps, used) for (steps, used) in raw_candidates if len(steps) == max_len
+    ]
+
+    # If we only used one die in a non-double roll, and multiple 1-step
+    # sequences exist, prefer those that use the higher die if possible.
+    if max_len == 1 and d1 != d2:
+        high = max(d1, d2)
+        with_high = [
+            (steps, used) for (steps, used) in best_sequences if high in used
+        ]
+        if with_high:
+            best_sequences = with_high
+
+    # Convert to Action objects and deduplicate
+    unique_actions: dict[Action, None] = {}
+    for steps, _used in best_sequences:
+        action = Action(steps=steps)
+        unique_actions[action] = None
+
+    return list(unique_actions.keys())
+
 
 # ----- Applying moves -----
 
