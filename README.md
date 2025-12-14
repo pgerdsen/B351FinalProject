@@ -37,19 +37,19 @@ Play against an AI opponent with a visual interface:
 
 ```bash
 # Play against Heuristic AI (default)
-python src/ui/graphical_human_vs_ai.py
+python3 src/ui/graphical_human_vs_ai.py
 
 # Play against Random AI
-python src/ui/graphical_human_vs_ai.py --ai random
+python3 src/ui/graphical_human_vs_ai.py --ai random
 
 # Play against Expectimax AI with depth 2
-python src/ui/graphical_human_vs_ai.py --ai expectimax --depth 2
+python3 src/ui/graphical_human_vs_ai.py --ai expectimax --depth 2
 
 # Play against Expectimax AI with depth 3 (smarter but slower)
-python src/ui/graphical_human_vs_ai.py --ai expectimax --depth 3
+python3 src/ui/graphical_human_vs_ai.py --ai expectimax --depth 3
 
 # Play as Player 2 instead of Player 1
-python src/ui/graphical_human_vs_ai.py --human-player 2
+python3 src/ui/graphical_human_vs_ai.py --human-player 2
 ```
 
 **Command-line options:**
@@ -62,7 +62,7 @@ python src/ui/graphical_human_vs_ai.py --human-player 2
 Play a local two-player game:
 
 ```bash
-python src/ui/graphical_main.py
+python3 src/ui/graphical_main.py
 ```
 
 ### Terminal-Based Game
@@ -70,7 +70,7 @@ python src/ui/graphical_main.py
 Play via command line:
 
 ```bash
-python src/game/human_vs_ai.py
+python3 src/game/human_vs_ai.py
 ```
 
 ### Testing AI Agents
@@ -78,7 +78,7 @@ python src/game/human_vs_ai.py
 Compare different AI agents:
 
 ```bash
-python src/main.py
+python3 src/main.py
 ```
 
 ## How to Play (Graphical UI)
@@ -146,10 +146,10 @@ B351FinalProject/
 
 ```bash
 # Run all tests
-python -m pytest tests/
+python3 -m pytest tests/
 
 # Run specific test file
-python tests/test_board.py
+python3 tests/test_board.py
 ```
 
 ### Code Structure

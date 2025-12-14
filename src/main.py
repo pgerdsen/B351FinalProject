@@ -1,8 +1,19 @@
-from ai.heuristics import HeuristicAgent
-from ai.expectimax import ExpectimaxAgent, ExpectimaxConfig
-from game.state import GameState
-from game.dice import roll_dice
-from game import rules
+from __future__ import annotations
+
+import sys
+from pathlib import Path
+
+# Ensure we can import as a package
+# Add the project root (parent of src) to path so package imports work
+project_root = Path(__file__).parent.parent
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+
+from src.ai.heuristics import HeuristicAgent
+from src.ai.expectimax import ExpectimaxAgent, ExpectimaxConfig
+from src.game.state import GameState
+from src.game.dice import roll_dice
+from src.game import rules
 
 
 def main() -> None:
