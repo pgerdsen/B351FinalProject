@@ -5,77 +5,26 @@ Graphical UI for Human vs AI Backgammon game.
 from __future__ import annotations
 
 import sys
-import json
-import traceback
 import pygame
 from pathlib import Path
-
-# #region agent log
-log_path = Path(__file__).parent.parent.parent / ".cursor" / "debug.log"
-def _log(hypothesis_id, location, message, data):
-    try:
-        with open(log_path, "a") as f:
-            f.write(json.dumps({"sessionId": "debug-session", "runId": "run1", "hypothesisId": hypothesis_id, "location": location, "message": message, "data": data, "timestamp": __import__("time").time() * 1000}) + "\n")
-    except: pass
-# #endregion
-
-_log("A", "graphical_human_vs_ai.py:18", "Script started", {"__file__": str(__file__), "__name__": __name__})
 
 # Ensure we can import as a package
 # Add the project root (parent of src) to path so package imports work
 project_root = Path(__file__).parent.parent.parent
-_log("A", "graphical_human_vs_ai.py:23", "Setting up project root", {"project_root": str(project_root), "exists": project_root.exists()})
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
-_log("A", "graphical_human_vs_ai.py:26", "After sys.path setup", {"project_root_in_path": str(project_root) in sys.path})
 
 # Now import using package structure
 import argparse
 
-_log("A", "graphical_human_vs_ai.py:30", "Starting imports", {})
-try:
-    from src.game.state import GameState
-    _log("A", "graphical_human_vs_ai.py:33", "Import succeeded: GameState", {})
-except Exception as e:
-    _log("A", "graphical_human_vs_ai.py:35", "Import failed: GameState", {"error": str(e), "type": type(e).__name__, "traceback": traceback.format_exc()})
-    raise
-
-try:
-    from src.game.board import PLAYER_1, PLAYER_2
-    _log("A", "graphical_human_vs_ai.py:39", "Import succeeded: PLAYER_1, PLAYER_2", {})
-except Exception as e:
-    _log("A", "graphical_human_vs_ai.py:41", "Import failed: PLAYER_1, PLAYER_2", {"error": str(e), "type": type(e).__name__, "traceback": traceback.format_exc()})
-    raise
-
-try:
-    from src.game import rules
-    from src.game.dice import roll_dice
-    from src.game.game_loop import RandomAgent
-    _log("A", "graphical_human_vs_ai.py:47", "Import succeeded: rules, dice, game_loop", {})
-except Exception as e:
-    _log("A", "graphical_human_vs_ai.py:49", "Import failed: rules/dice/game_loop", {"error": str(e), "type": type(e).__name__, "traceback": traceback.format_exc()})
-    raise
-
-try:
-    from src.ui.graphical import GraphicalUI, BACKGROUND_COLOR, BOARD_WIDTH, BOARD_HEIGHT
-    _log("A", "graphical_human_vs_ai.py:53", "Import succeeded: GraphicalUI", {})
-except Exception as e:
-    _log("A", "graphical_human_vs_ai.py:55", "Import failed: GraphicalUI", {"error": str(e), "type": type(e).__name__, "traceback": traceback.format_exc()})
-    raise
-
-try:
-    from src.ai.heuristics import HeuristicAgent
-    _log("A", "graphical_human_vs_ai.py:59", "Import succeeded: HeuristicAgent", {})
-except Exception as e:
-    _log("A", "graphical_human_vs_ai.py:61", "Import failed: HeuristicAgent", {"error": str(e), "type": type(e).__name__, "traceback": traceback.format_exc()})
-    raise
-
-try:
-    from src.ai.expectimax import ExpectimaxAgent, ExpectimaxConfig
-    _log("A", "graphical_human_vs_ai.py:65", "Import succeeded: ExpectimaxAgent", {})
-except Exception as e:
-    _log("A", "graphical_human_vs_ai.py:67", "Import failed: ExpectimaxAgent", {"error": str(e), "type": type(e).__name__, "traceback": traceback.format_exc()})
-    raise
+from src.game.state import GameState
+from src.game.board import PLAYER_1, PLAYER_2
+from src.game import rules
+from src.game.dice import roll_dice
+from src.game.game_loop import RandomAgent
+from src.ui.graphical import GraphicalUI, BACKGROUND_COLOR, BOARD_WIDTH, BOARD_HEIGHT
+from src.ai.heuristics import HeuristicAgent
+from src.ai.expectimax import ExpectimaxAgent, ExpectimaxConfig
 
 
 class HumanVsAIGraphicalUI(GraphicalUI):
@@ -108,6 +57,13 @@ class HumanVsAIGraphicalUI(GraphicalUI):
                 except Exception as e:
                     raise
                 try:
+                    # Show "thinking" message for slow AIs (like expectimax)
+                    if "expectimax" in self.ai_name.lower():
+                        print(f"{self.ai_name} is thinking... (this may take a while)")
+                        # Redraw to show the message
+                        self.draw()
+                        pygame.display.flip()
+                    
                     action = self.ai_agent.choose_action(self.state, self.current_dice)
                 except Exception as e:
                     print(f"Error in choose_action: {e}")
@@ -372,74 +328,48 @@ def create_ai_agent(ai_type: str, depth: int = 2):
 
 def main():
     """Start a human vs AI game."""
-    _log("B", "graphical_human_vs_ai.py:375", "main() function entry", {})
+    parser = argparse.ArgumentParser(description="Play Backgammon against an AI opponent")
+    parser.add_argument(
+        "--ai",
+        type=str,
+        default="heuristic",
+        choices=["random", "heuristic", "expectimax"],
+        help="Type of AI opponent (default: heuristic)"
+    )
+    parser.add_argument(
+        "--depth",
+        type=int,
+        default=1,
+        help="Depth for expectimax AI (default: 1, higher = smarter but MUCH slower - depth 2 can take 60+ seconds per move)"
+    )
+    parser.add_argument(
+        "--human-player",
+        type=int,
+        default=1,
+        choices=[1, 2],
+        help="Which player you want to be (1 or 2, default: 1)"
+    )
+    
+    args = parser.parse_args()
+    
+    state = GameState.initial()
+    
+    # Create AI agent
     try:
-        parser = argparse.ArgumentParser(description="Play Backgammon against an AI opponent")
-        parser.add_argument(
-            "--ai",
-            type=str,
-            default="heuristic",
-            choices=["random", "heuristic", "expectimax"],
-            help="Type of AI opponent (default: heuristic)"
-        )
-        parser.add_argument(
-            "--depth",
-            type=int,
-            default=2,
-            help="Depth for expectimax AI (default: 2, higher = smarter but slower)"
-        )
-        parser.add_argument(
-            "--human-player",
-            type=int,
-            default=1,
-            choices=[1, 2],
-            help="Which player you want to be (1 or 2, default: 1)"
-        )
-        
-        args = parser.parse_args()
-        _log("B", "graphical_human_vs_ai.py:400", "Args parsed", {"ai": args.ai, "depth": args.depth, "human_player": args.human_player})
-        
-        _log("B", "graphical_human_vs_ai.py:402", "Creating initial GameState", {})
-        state = GameState.initial()
-        _log("B", "graphical_human_vs_ai.py:404", "GameState created", {"current_player": state.current_player})
-        
-        # Create AI agent
-        _log("B", "graphical_human_vs_ai.py:407", "Creating AI agent", {"ai_type": args.ai, "depth": args.depth})
-        try:
-            ai, ai_name = create_ai_agent(args.ai, args.depth)
-            _log("B", "graphical_human_vs_ai.py:410", "AI agent created", {"ai_name": ai_name, "ai_type": type(ai).__name__})
-            print(f"Playing against {ai_name}")
-        except Exception as e:
-            _log("B", "graphical_human_vs_ai.py:413", "Error creating AI agent, falling back", {"error": str(e), "type": type(e).__name__, "traceback": traceback.format_exc()})
-            print(f"Error creating AI agent: {e}")
-            print("Falling back to HeuristicAgent")
-            ai = HeuristicAgent()
-            ai_name = "Heuristic AI"
-        
-        human_player = PLAYER_1 if args.human_player == 1 else PLAYER_2
-        _log("B", "graphical_human_vs_ai.py:421", "Creating UI", {"human_player": human_player, "ai_name": ai_name})
-        
-        try:
-            ui = HumanVsAIGraphicalUI(state, ai, human_player=human_player, ai_name=ai_name)
-            _log("B", "graphical_human_vs_ai.py:424", "UI created, calling run()", {})
-            ui.run()
-            _log("B", "graphical_human_vs_ai.py:426", "ui.run() completed", {})
-        except Exception as e:
-            _log("B", "graphical_human_vs_ai.py:428", "Exception during UI run", {"error": str(e), "type": type(e).__name__, "traceback": traceback.format_exc()})
-            raise
-        
-        _log("B", "graphical_human_vs_ai.py:431", "main() completed successfully", {})
+        ai, ai_name = create_ai_agent(args.ai, args.depth)
+        print(f"Playing against {ai_name}")
     except Exception as e:
-        _log("B", "graphical_human_vs_ai.py:433", "Exception in main()", {"error": str(e), "type": type(e).__name__, "traceback": traceback.format_exc()})
-        raise
+        print(f"Error creating AI agent: {e}")
+        print("Falling back to HeuristicAgent")
+        ai = HeuristicAgent()
+        ai_name = "Heuristic AI"
+    
+    human_player = PLAYER_1 if args.human_player == 1 else PLAYER_2
+    
+    ui = HumanVsAIGraphicalUI(state, ai, human_player=human_player, ai_name=ai_name)
+    ui.run()
 
 
 if __name__ == "__main__":
-    _log("A", "graphical_human_vs_ai.py:437", "__main__ block entered", {})
-    try:
-        main()
-        _log("A", "graphical_human_vs_ai.py:440", "Script completed successfully", {})
-    except Exception as e:
-        _log("A", "graphical_human_vs_ai.py:442", "Script failed with exception", {"error": str(e), "type": type(e).__name__, "traceback": traceback.format_exc()})
-        raise
+    main()
 

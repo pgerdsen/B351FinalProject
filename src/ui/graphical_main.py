@@ -7,13 +7,14 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-# Add src to path if needed
-src_path = Path(__file__).parent.parent
-if str(src_path) not in sys.path:
-    sys.path.insert(0, str(src_path))
+# Ensure we can import as a package
+# Add the project root (parent of src) to path so package imports work
+project_root = Path(__file__).parent.parent.parent
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
 
-from game.state import GameState
-from ui.graphical import GraphicalUI
+from src.game.state import GameState
+from src.ui.graphical import GraphicalUI
 
 
 def main():

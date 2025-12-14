@@ -42,11 +42,11 @@ python3 src/ui/graphical_human_vs_ai.py
 # Play against Random AI
 python3 src/ui/graphical_human_vs_ai.py --ai random
 
-# Play against Expectimax AI with depth 2
-python3 src/ui/graphical_human_vs_ai.py --ai expectimax --depth 2
+# Play against Expectimax AI with depth 1 (default, fast)
+python3 src/ui/graphical_human_vs_ai.py --ai expectimax --depth 1
 
-# Play against Expectimax AI with depth 3 (smarter but slower)
-python3 src/ui/graphical_human_vs_ai.py --ai expectimax --depth 3
+# Play against Expectimax AI with depth 2 (smarter but VERY slow - 60+ seconds per move)
+python3 src/ui/graphical_human_vs_ai.py --ai expectimax --depth 2
 
 # Play as Player 2 instead of Player 1
 python3 src/ui/graphical_human_vs_ai.py --human-player 2
@@ -54,7 +54,7 @@ python3 src/ui/graphical_human_vs_ai.py --human-player 2
 
 **Command-line options:**
 - `--ai {random,heuristic,expectimax}` - Choose AI opponent type (default: heuristic)
-- `--depth N` - Set search depth for Expectimax AI (default: 2)
+- `--depth N` - Set search depth for Expectimax AI (default: 1). **Warning:** Depth 2 takes 60+ seconds per move, depth 3+ is impractical
 - `--human-player {1,2}` - Choose which player you want to be (default: 1)
 
 ### Graphical UI - Human vs Human
@@ -65,13 +65,6 @@ Play a local two-player game:
 python3 src/ui/graphical_main.py
 ```
 
-### Terminal-Based Game
-
-Play via command line:
-
-```bash
-python3 src/game/human_vs_ai.py
-```
 
 ### Testing AI Agents
 
@@ -113,7 +106,8 @@ The game will automatically:
 - Uses expectimax search algorithm
 - Looks ahead multiple moves
 - Configurable search depth
-- Strongest opponent (higher depth = smarter but slower)
+- Strongest opponent, but **very slow** at higher depths
+- **Performance warning:** Depth 1 is fast (~1 second), depth 2 takes 60+ seconds per move, depth 3+ is impractical
 
 ## Project Structure
 
