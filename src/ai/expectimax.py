@@ -205,13 +205,17 @@ class ExpectimaxAgent:
         total = 0.0
 
         for dice, prob in outcomes_with_prob:
-            value = self._decision_value(
-                state=state,
-                depth=depth,
-                current_player=current_player,
-                root_player=root_player,
-                dice=dice,
-            )
+            try:
+                value = self._decision_value(
+                    state=state,
+                    depth=depth,
+                    current_player=current_player,
+                    root_player=root_player,
+                    dice=dice,
+                )
+            except Exception as e:
+                # Return a very bad value so this path is avoided
+                value = float('-inf') if current_player == root_player else float('inf')
             total += prob * value
 
         return total
