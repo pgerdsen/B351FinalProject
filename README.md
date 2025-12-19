@@ -128,7 +128,6 @@ B351FinalProject/
 │       ├── graphical.py           # Base graphical UI
 │       ├── graphical_main.py      # Human vs Human UI
 │       └── graphical_human_vs_ai.py  # Human vs AI UI
-├── docs/                # Documentation
 ├── tests/               # Unit tests
 ├── requirements.txt     # Python dependencies
 └── README.md           # This file
